@@ -440,7 +440,7 @@ export async function callInitializeConfig(keypair: Keypair): Promise<string> {
   const id = txPending("Initialize Config");
   try {
     const program = getProgram(keypair, "base");
-    const tx = await withBlockhashRetry(() =>
+    const tx = await withBlockhashRetry<string>(() =>
       (program.methods as any)
         .initializeConfig()
         .accounts({ authority: keypair.publicKey })
@@ -474,7 +474,7 @@ export async function callInitializePlayer(keypair: Keypair): Promise<string> {
   const id = txPending("Initialize Player");
   try {
     const program = getProgram(keypair, "base");
-    const tx = await withBlockhashRetry(() =>
+    const tx = await withBlockhashRetry<string>(() =>
       (program.methods as any)
         .initializePlayer()
         .accounts({ player: keypair.publicKey })
@@ -498,7 +498,7 @@ export async function callInitializeZone(
     const program = getProgram(keypair, "base");
     const zoneIndex = "red" in zone ? 0 : "blue" in zone ? 1 : 2;
     const [zoneStatePDA] = getZoneStatePDA(keypair.publicKey, zoneIndex);
-    const tx = await withBlockhashRetry(() =>
+    const tx = await withBlockhashRetry<string>(() =>
       (program.methods as any)
         .initializeZone(zone)
         .accounts({ zoneState: zoneStatePDA, player: keypair.publicKey })
@@ -516,7 +516,7 @@ export async function callStartGame(keypair: Keypair): Promise<string> {
   const id = txPending("Start Game");
   try {
     const program = getProgram(keypair, "base");
-    const tx = await withBlockhashRetry(() =>
+    const tx = await withBlockhashRetry<string>(() =>
       (program.methods as any)
         .startGame()
         .accounts({ player: keypair.publicKey })

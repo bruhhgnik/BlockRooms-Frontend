@@ -17,6 +17,30 @@ dev-dist
 # Environment and local settings
 *.local
 .env
+.env.*
+!.env.example
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.db-journal
+*.db-shm
+*.db-wal
+
+# MagicBlock test storage
+**/magicblock-test-storage/
+
+# Anchor/Solana
+.anchor/
+test-ledger/
+target/
+
+# Build outputs
+.next/
+out/
+build/
 
 # mkcert certificates
 dev-key.pem
@@ -25,6 +49,7 @@ localhost*.pem
 localhost*-key.pem
 mkcert+1-key.pem
 mkcert+1.pem
+*.pem
 
 # Editor directories and files
 .vscode/*
@@ -36,3 +61,6 @@ mkcert+1.pem
 *.njsproj
 *.sln
 *.sw?
+
+# Vercel
+.vercel
