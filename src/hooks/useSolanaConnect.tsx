@@ -5,7 +5,7 @@ import {
   ensureGameConfigInitialized,
 } from '../lib/solana';
 
-export const useStarknetConnect = () => {
+export const useSolanaConnect = () => {
   const [status, setStatus] = useState<'connected' | 'connecting' | 'disconnected'>('disconnected');
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);

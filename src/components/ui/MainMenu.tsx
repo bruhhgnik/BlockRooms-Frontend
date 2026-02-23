@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
 import useAppStore, { GamePhase } from "../../zustand/store";
-import { useStarknetConnect } from "../../hooks/useStarknetConnect";
+import { useSolanaConnect } from "../../hooks/useSolanaConnect";
 import { useGameData } from "../../hooks/useGameData";
 import { useInitializePlayer } from "../../hooks/useInitializePlayer";
 import { useStartGame } from "../../hooks/useStartGame";
 
 export function MainMenu(): JSX.Element {
-  const { status, address, handleConnect, isConnecting } = useStarknetConnect();
+  const { status, address, handleConnect, isConnecting } = useSolanaConnect();
   const { isLoading: playerLoading, refetch } = useGameData();
   const {
     initializePlayer,

@@ -8,7 +8,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./index.css";
 
-// Simple initialization without Dojo/Starknet
+// Simple initialization with Solana
 async function main() {
   try {
     console.log("🚀 Initializing BlockRooms...");
