@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import useAppStore from '../zustand/store';
 import {
   getSessionKeypair,
-  ensureFunded,
   ensureGameConfigInitialized,
 } from '../lib/solana';
 
@@ -23,8 +22,6 @@ export const useStarknetConnect = () => {
       const pubkey = keypair.publicKey.toString();
       console.log('[Wallet] Session keypair:', pubkey);
 
-      // Ensure funded on devnet
-      await ensureFunded(keypair);
       const hasGameConfig = await ensureGameConfigInitialized(keypair);
       if (!hasGameConfig) {
         console.warn(
