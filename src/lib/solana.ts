@@ -82,20 +82,13 @@ export function toFriendlyProgramError(error: unknown): string {
 
 // ===== SESSION KEYPAIR =====
 
-/** Load or create a persistent session keypair from localStorage */
+/** Hardcoded devnet session keypair — fund this address on devnet:
+ *  8WkwcAjPgEGTzKwgvfgYWPuAxRpQLZ9PjJvXPDc39QAb
+ */
+const HARDCODED_SECRET = new Uint8Array([156,27,76,136,243,122,254,57,228,40,24,181,218,5,186,88,210,172,213,246,169,122,72,216,129,168,82,242,4,22,208,173,111,161,86,53,17,55,149,62,187,104,253,198,83,115,140,8,8,34,227,234,152,34,124,192,10,63,199,129,219,78,150,168]);
+
 export function getSessionKeypair(): Keypair {
-  try {
-    const stored = localStorage.getItem(SESSION_KEY);
-    if (stored) {
-      const secretKey = new Uint8Array(JSON.parse(stored));
-      return Keypair.fromSecretKey(secretKey);
-    }
-  } catch {
-    // corrupted — regenerate
-  }
-  const kp = Keypair.generate();
-  localStorage.setItem(SESSION_KEY, JSON.stringify(Array.from(kp.secretKey)));
-  return kp;
+  return Keypair.fromSecretKey(HARDCODED_SECRET);
 }
 
 /** Clear the stored session keypair (for "new wallet") */
