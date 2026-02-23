@@ -1,0 +1,3119 @@
+{
+  "address": "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc",
+  "metadata": {
+    "name": "gameframework",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Game framework ported from BlockRooms - zone-based roguelike with betting mechanics and on-chain movement"
+  },
+  "instructions": [
+    {
+      "name": "buy_food",
+      "docs": [
+        "Buy food to restore health"
+      ],
+      "discriminator": [
+        126,
+        142,
+        236,
+        163,
+        144,
+        102,
+        101,
+        44
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "change_zone",
+      "docs": [
+        "Change to a new zone (requires previous zone completion)"
+      ],
+      "discriminator": [
+        146,
+        121,
+        87,
+        196,
+        185,
+        228,
+        106,
+        246
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "current_zone_state"
+        },
+        {
+          "name": "target_zone_state"
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "new_zone",
+          "type": {
+            "defined": {
+              "name": "ZoneType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "commit_player",
+      "docs": [
+        "Commit player state from ER"
+      ],
+      "discriminator": [
+        240,
+        196,
+        120,
+        93,
+        216,
+        101,
+        42,
+        253
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delegate_game_session",
+      "docs": [
+        "Delegate game session to ephemeral rollup"
+      ],
+      "discriminator": [
+        238,
+        29,
+        127,
+        140,
+        161,
+        57,
+        84,
+        117
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "buffer_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                130,
+                152,
+                210,
+                74,
+                77,
+                80,
+                168,
+                172,
+                96,
+                139,
+                94,
+                212,
+                179,
+                243,
+                133,
+                198,
+                251,
+                188,
+                204,
+                181,
+                80,
+                19,
+                9,
+                59,
+                107,
+                191,
+                30,
+                247,
+                151,
+                134,
+                193,
+                175
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "pda",
+          "writable": true
+        },
+        {
+          "name": "owner_program",
+          "address": "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delegate_player",
+      "docs": [
+        "Delegate player state to ephemeral rollup"
+      ],
+      "discriminator": [
+        235,
+        159,
+        245,
+        102,
+        161,
+        199,
+        254,
+        89
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "buffer_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                130,
+                152,
+                210,
+                74,
+                77,
+                80,
+                168,
+                172,
+                96,
+                139,
+                94,
+                212,
+                179,
+                243,
+                133,
+                198,
+                251,
+                188,
+                204,
+                181,
+                80,
+                19,
+                9,
+                59,
+                107,
+                191,
+                30,
+                247,
+                151,
+                134,
+                193,
+                175
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "pda",
+          "writable": true
+        },
+        {
+          "name": "owner_program",
+          "address": "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delegate_player_stats",
+      "docs": [
+        "Delegate player stats to ephemeral rollup"
+      ],
+      "discriminator": [
+        164,
+        37,
+        38,
+        103,
+        205,
+        85,
+        24,
+        5
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "buffer_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                130,
+                152,
+                210,
+                74,
+                77,
+                80,
+                168,
+                172,
+                96,
+                139,
+                94,
+                212,
+                179,
+                243,
+                133,
+                198,
+                251,
+                188,
+                204,
+                181,
+                80,
+                19,
+                9,
+                59,
+                107,
+                191,
+                30,
+                247,
+                151,
+                134,
+                193,
+                175
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "pda",
+          "writable": true
+        },
+        {
+          "name": "owner_program",
+          "address": "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "delegate_zone_state",
+      "docs": [
+        "Delegate zone state to ephemeral rollup"
+      ],
+      "discriminator": [
+        49,
+        180,
+        185,
+        92,
+        23,
+        12,
+        12,
+        100
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "signer": true
+        },
+        {
+          "name": "buffer_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                130,
+                152,
+                210,
+                74,
+                77,
+                80,
+                168,
+                172,
+                96,
+                139,
+                94,
+                212,
+                179,
+                243,
+                133,
+                198,
+                251,
+                188,
+                204,
+                181,
+                80,
+                19,
+                9,
+                59,
+                107,
+                191,
+                30,
+                247,
+                151,
+                134,
+                193,
+                175
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_pda",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pda"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "pda",
+          "writable": true
+        },
+        {
+          "name": "owner_program",
+          "address": "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "zone",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "end_game",
+      "docs": [
+        "End the current game session"
+      ],
+      "discriminator": [
+        224,
+        135,
+        245,
+        99,
+        67,
+        175,
+        121,
+        252
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "enter_room",
+      "docs": [
+        "Enter a room in the current zone"
+      ],
+      "discriminator": [
+        11,
+        183,
+        145,
+        172,
+        142,
+        163,
+        207,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bet_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "room_state",
+          "writable": true
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "zone",
+          "type": {
+            "defined": {
+              "name": "ZoneType"
+            }
+          }
+        },
+        {
+          "name": "room_number",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "initialize_config",
+      "docs": [
+        "Initialize the game config (admin only, once per game)"
+      ],
+      "discriminator": [
+        208,
+        127,
+        21,
+        1,
+        194,
+        190,
+        196,
+        70
+      ],
+      "accounts": [
+        {
+          "name": "game_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_player",
+      "docs": [
+        "Initialize a new player"
+      ],
+      "discriminator": [
+        79,
+        249,
+        88,
+        177,
+        220,
+        62,
+        56,
+        128
+      ],
+      "accounts": [
+        {
+          "name": "player_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bet_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_zone",
+      "docs": [
+        "Initialize a zone for the player"
+      ],
+      "discriminator": [
+        122,
+        6,
+        86,
+        137,
+        249,
+        28,
+        49,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "zone_state",
+          "writable": true
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "zone",
+          "type": {
+            "defined": {
+              "name": "ZoneType"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "move_player",
+      "docs": [
+        "Record a grid movement step.",
+        "Frontend sends one transaction each time player crosses into a new grid cell."
+      ],
+      "discriminator": [
+        17,
+        58,
+        68,
+        221,
+        186,
+        117,
+        140,
+        231
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "x_delta",
+          "type": "i8"
+        },
+        {
+          "name": "y_delta",
+          "type": "i8"
+        }
+      ]
+    },
+    {
+      "name": "place_bet",
+      "docs": [
+        "Place a bet on whether the next enemy is real or fake"
+      ],
+      "discriminator": [
+        222,
+        62,
+        67,
+        220,
+        63,
+        166,
+        126,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bet_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "zone_state"
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "prediction",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "process_undelegation",
+      "discriminator": [
+        196,
+        28,
+        41,
+        206,
+        48,
+        37,
+        51,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "base_account",
+          "writable": true
+        },
+        {
+          "name": "buffer"
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "account_seeds",
+          "type": {
+            "vec": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "shoot_enemy",
+      "docs": [
+        "Shoot an enemy and resolve the encounter"
+      ],
+      "discriminator": [
+        236,
+        49,
+        36,
+        167,
+        44,
+        89,
+        244,
+        199
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bet_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  101,
+                  116,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "zone_state",
+          "writable": true
+        },
+        {
+          "name": "game_session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "enemy_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  101,
+                  110,
+                  101,
+                  109,
+                  121,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              },
+              {
+                "kind": "arg",
+                "path": "enemy_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "enemy_id",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "start_game",
+      "docs": [
+        "Start a new game session"
+      ],
+      "discriminator": [
+        249,
+        47,
+        252,
+        172,
+        184,
+        162,
+        245,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "take_damage",
+      "docs": [
+        "Take damage from an enemy"
+      ],
+      "discriminator": [
+        10,
+        163,
+        247,
+        245,
+        64,
+        4,
+        227,
+        186
+      ],
+      "accounts": [
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "game_session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "damage",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "undelegate_player",
+      "docs": [
+        "Undelegate player state from ER"
+      ],
+      "discriminator": [
+        230,
+        242,
+        176,
+        199,
+        120,
+        26,
+        119,
+        243
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "player_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114,
+                  95,
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_config",
+      "docs": [
+        "Update game config (admin only)"
+      ],
+      "discriminator": [
+        29,
+        158,
+        252,
+        191,
+        10,
+        83,
+        219,
+        99
+      ],
+      "accounts": [
+        {
+          "name": "game_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "game_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "red_zone_rooms",
+          "type": "u32"
+        },
+        {
+          "name": "blue_zone_rooms",
+          "type": "u32"
+        },
+        {
+          "name": "green_zone_rooms",
+          "type": "u32"
+        },
+        {
+          "name": "red_zone_real_enemies",
+          "type": "u32"
+        },
+        {
+          "name": "blue_zone_real_enemies",
+          "type": "u32"
+        },
+        {
+          "name": "green_zone_real_enemies",
+          "type": "u32"
+        },
+        {
+          "name": "red_zone_damage",
+          "type": "u32"
+        },
+        {
+          "name": "blue_zone_damage",
+          "type": "u32"
+        },
+        {
+          "name": "green_zone_damage",
+          "type": "u32"
+        },
+        {
+          "name": "starting_health",
+          "type": "u32"
+        },
+        {
+          "name": "starting_xp",
+          "type": "u64"
+        },
+        {
+          "name": "food_cost",
+          "type": "u64"
+        },
+        {
+          "name": "food_health_restore",
+          "type": "u32"
+        },
+        {
+          "name": "food_hive_bonus",
+          "type": "u64"
+        },
+        {
+          "name": "xp_to_hive_rate",
+          "type": "u64"
+        },
+        {
+          "name": "bet_win_percentage",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "BetState",
+      "discriminator": [
+        143,
+        61,
+        238,
+        62,
+        232,
+        157,
+        101,
+        185
+      ]
+    },
+    {
+      "name": "EnemyState",
+      "discriminator": [
+        95,
+        116,
+        234,
+        55,
+        5,
+        26,
+        195,
+        69
+      ]
+    },
+    {
+      "name": "GameConfig",
+      "discriminator": [
+        45,
+        146,
+        146,
+        33,
+        170,
+        69,
+        96,
+        133
+      ]
+    },
+    {
+      "name": "GameSession",
+      "discriminator": [
+        150,
+        116,
+        20,
+        197,
+        205,
+        121,
+        220,
+        240
+      ]
+    },
+    {
+      "name": "PlayerState",
+      "discriminator": [
+        56,
+        3,
+        60,
+        86,
+        174,
+        16,
+        244,
+        195
+      ]
+    },
+    {
+      "name": "PlayerStats",
+      "discriminator": [
+        169,
+        146,
+        242,
+        176,
+        102,
+        118,
+        231,
+        172
+      ]
+    },
+    {
+      "name": "RoomState",
+      "discriminator": [
+        251,
+        176,
+        114,
+        29,
+        232,
+        0,
+        65,
+        181
+      ]
+    },
+    {
+      "name": "ZoneState",
+      "discriminator": [
+        247,
+        203,
+        165,
+        0,
+        170,
+        49,
+        193,
+        143
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "BetPlaced",
+      "discriminator": [
+        88,
+        88,
+        145,
+        226,
+        126,
+        206,
+        32,
+        0
+      ]
+    },
+    {
+      "name": "DamageTaken",
+      "discriminator": [
+        116,
+        170,
+        16,
+        10,
+        89,
+        148,
+        204,
+        44
+      ]
+    },
+    {
+      "name": "EnemyGenerated",
+      "discriminator": [
+        106,
+        54,
+        194,
+        111,
+        95,
+        98,
+        197,
+        198
+      ]
+    },
+    {
+      "name": "EnemyShot",
+      "discriminator": [
+        54,
+        139,
+        221,
+        188,
+        134,
+        240,
+        152,
+        221
+      ]
+    },
+    {
+      "name": "GameCompleted",
+      "discriminator": [
+        103,
+        26,
+        106,
+        108,
+        240,
+        191,
+        179,
+        120
+      ]
+    },
+    {
+      "name": "GameFailed",
+      "discriminator": [
+        143,
+        80,
+        81,
+        144,
+        111,
+        75,
+        202,
+        185
+      ]
+    },
+    {
+      "name": "GameStarted",
+      "discriminator": [
+        222,
+        247,
+        78,
+        255,
+        61,
+        184,
+        156,
+        41
+      ]
+    },
+    {
+      "name": "PlayerMoved",
+      "discriminator": [
+        167,
+        114,
+        108,
+        144,
+        204,
+        62,
+        98,
+        128
+      ]
+    },
+    {
+      "name": "ZoneProgress",
+      "discriminator": [
+        153,
+        187,
+        228,
+        96,
+        241,
+        212,
+        172,
+        209
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InsufficientXP",
+      "msg": "Insufficient XP for this action"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidZone",
+      "msg": "Invalid zone"
+    },
+    {
+      "code": 6002,
+      "name": "EnemyAlreadyShot",
+      "msg": "Enemy already shot"
+    },
+    {
+      "code": 6003,
+      "name": "GameNotActive",
+      "msg": "Game is not active"
+    },
+    {
+      "code": 6004,
+      "name": "RoomAlreadyExplored",
+      "msg": "Room already explored"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidRoomNumber",
+      "msg": "Invalid room number"
+    },
+    {
+      "code": 6006,
+      "name": "NoActiveBet",
+      "msg": "No active bet"
+    },
+    {
+      "code": 6007,
+      "name": "ZoneNotInitialized",
+      "msg": "Zone not initialized"
+    },
+    {
+      "code": 6008,
+      "name": "ZoneNotCompleted",
+      "msg": "Previous zone not completed"
+    },
+    {
+      "code": 6009,
+      "name": "BetAlreadyActive",
+      "msg": "Bet already active"
+    },
+    {
+      "code": 6010,
+      "name": "HealthAlreadyFull",
+      "msg": "Health already full"
+    },
+    {
+      "code": 6011,
+      "name": "GameAlreadyActive",
+      "msg": "Game already active"
+    },
+    {
+      "code": 6012,
+      "name": "PlayerAlreadyInitialized",
+      "msg": "Player already initialized"
+    },
+    {
+      "code": 6013,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidMovementDelta",
+      "msg": "Invalid movement delta. Use -1, 0, or 1 and avoid 0,0"
+    }
+  ],
+  "types": [
+    {
+      "name": "BetPlaced",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "bet_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bet_prediction",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BetState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "prediction",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "DamageTaken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "damage_amount",
+            "type": "u32"
+          },
+          {
+            "name": "remaining_health",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EnemyGenerated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "enemy_id",
+            "type": "u64"
+          },
+          {
+            "name": "zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "is_real",
+            "type": "bool"
+          },
+          {
+            "name": "encounter_order",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EnemyShot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "enemy_id",
+            "type": "u64"
+          },
+          {
+            "name": "bet_result",
+            "type": "bool"
+          },
+          {
+            "name": "xp_gained",
+            "type": "u64"
+          },
+          {
+            "name": "hive_earned",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "EnemyState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "enemy_id",
+            "type": "u64"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "is_real",
+            "type": "bool"
+          },
+          {
+            "name": "is_shot",
+            "type": "bool"
+          },
+          {
+            "name": "encounter_order",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameCompleted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "u64"
+          },
+          {
+            "name": "zones_completed",
+            "type": "u32"
+          },
+          {
+            "name": "total_hive_earned",
+            "type": "u64"
+          },
+          {
+            "name": "result",
+            "type": {
+              "defined": {
+                "name": "GameResult"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "red_zone_rooms",
+            "type": "u32"
+          },
+          {
+            "name": "blue_zone_rooms",
+            "type": "u32"
+          },
+          {
+            "name": "green_zone_rooms",
+            "type": "u32"
+          },
+          {
+            "name": "red_zone_real_enemies",
+            "type": "u32"
+          },
+          {
+            "name": "blue_zone_real_enemies",
+            "type": "u32"
+          },
+          {
+            "name": "green_zone_real_enemies",
+            "type": "u32"
+          },
+          {
+            "name": "red_zone_damage",
+            "type": "u32"
+          },
+          {
+            "name": "blue_zone_damage",
+            "type": "u32"
+          },
+          {
+            "name": "green_zone_damage",
+            "type": "u32"
+          },
+          {
+            "name": "starting_health",
+            "type": "u32"
+          },
+          {
+            "name": "starting_xp",
+            "type": "u64"
+          },
+          {
+            "name": "food_cost",
+            "type": "u64"
+          },
+          {
+            "name": "food_health_restore",
+            "type": "u32"
+          },
+          {
+            "name": "food_hive_bonus",
+            "type": "u64"
+          },
+          {
+            "name": "xp_to_hive_rate",
+            "type": "u64"
+          },
+          {
+            "name": "bet_win_percentage",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameFailed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "u64"
+          },
+          {
+            "name": "reason",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameResult",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Victory"
+          },
+          {
+            "name": "Defeat"
+          },
+          {
+            "name": "InProgress"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameSession",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "session_id",
+            "type": "u64"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          },
+          {
+            "name": "end_time",
+            "type": "i64"
+          },
+          {
+            "name": "zones_completed",
+            "type": "u32"
+          },
+          {
+            "name": "total_hive_earned",
+            "type": "u64"
+          },
+          {
+            "name": "total_xp_earned",
+            "type": "u64"
+          },
+          {
+            "name": "session_complete",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameStarted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "u64"
+          },
+          {
+            "name": "start_time",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerMoved",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "x_delta",
+            "type": "i8"
+          },
+          {
+            "name": "y_delta",
+            "type": "i8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "current_zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "health",
+            "type": "u32"
+          },
+          {
+            "name": "xp",
+            "type": "u64"
+          },
+          {
+            "name": "game_active",
+            "type": "bool"
+          },
+          {
+            "name": "current_session_id",
+            "type": "u64"
+          },
+          {
+            "name": "encounter_count",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerStats",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "hive_balance",
+            "type": "u64"
+          },
+          {
+            "name": "total_real_enemies_killed",
+            "type": "u32"
+          },
+          {
+            "name": "total_fake_enemies_killed",
+            "type": "u32"
+          },
+          {
+            "name": "games_completed",
+            "type": "u32"
+          },
+          {
+            "name": "games_failed",
+            "type": "u32"
+          },
+          {
+            "name": "total_time_played",
+            "type": "u64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "RoomState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "room_number",
+            "type": "u32"
+          },
+          {
+            "name": "explored",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ZoneProgress",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "real_enemies_killed",
+            "type": "u32"
+          },
+          {
+            "name": "encounters_remaining",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ZoneState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "zone",
+            "type": {
+              "defined": {
+                "name": "ZoneType"
+              }
+            }
+          },
+          {
+            "name": "real_enemies_killed",
+            "type": "u32"
+          },
+          {
+            "name": "remaining_real_enemies",
+            "type": "u32"
+          },
+          {
+            "name": "remaining_encounters",
+            "type": "u32"
+          },
+          {
+            "name": "zone_completed",
+            "type": "bool"
+          },
+          {
+            "name": "rooms_explored",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ZoneType",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Red"
+          },
+          {
+            "name": "Blue"
+          },
+          {
+            "name": "Green"
+          }
+        ]
+      }
+    }
+  ]
+}
