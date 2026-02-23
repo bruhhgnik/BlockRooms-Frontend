@@ -7,7 +7,6 @@ import {
   fetchPlayerState,
   fetchPlayerStats,
   ensureGameConfigInitialized,
-  ensureFunded,
   toFriendlyProgramError,
 } from '../lib/solana';
 
@@ -26,16 +25,6 @@ export const useInitializePlayer = () => {
     try {
       const keypair = getSessionKeypair();
       const pubkey = keypair.publicKey.toString();
-
-      // Ensure the session keypair has SOL for transaction fees
-      const funded = await ensureFunded(keypair);
-      if (!funded) {
-        setIsLoading(false);
-        return {
-          success: false,
-          error: `Session wallet has no SOL. Fund it at https://faucet.solana.com — address: ${pubkey}`,
-        };
-      }
 
       // Check if already initialized by trying to fetch
       let ps = await fetchPlayerState(keypair);
