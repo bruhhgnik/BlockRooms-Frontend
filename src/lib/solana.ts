@@ -19,10 +19,6 @@ const USE_MAGICBLOCK = true;
 const SESSION_KEY = "blockrooms_session_keypair";
 const ER_DELEGATION_KEY = "blockrooms_er_delegated";
 
-const DELEGATION_PROGRAM_ID = new PublicKey("DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh");
-const MAGIC_PROGRAM_ID = new PublicKey("Magic11111111111111111111111111111111111111");
-const MAGIC_CONTEXT_ID = new PublicKey("MagicContext1111111111111111111111111111111");
-
 const PLAYER_STATE_SEED = "player_state";
 const PLAYER_STATS_SEED = "player_stats";
 const ZONE_STATE_SEED = "zone_state";
@@ -78,9 +74,6 @@ export function toFriendlyProgramError(error: unknown): string {
   if (isBlockhashTransientError(error)) {
     return "Network blockhash expired. Please retry the action.";
   }
-  if (msg.includes("AccountOwnedByWrongProgram")) {
-    return "Account still delegated to MagicBlock. Retrying should auto-recover.";
-  }
   if (msg.includes("insufficient funds for fee")) {
     return "Not enough SOL for transaction fees.";
   }
@@ -90,9 +83,9 @@ export function toFriendlyProgramError(error: unknown): string {
 // ===== SESSION KEYPAIR =====
 
 /** Hardcoded devnet session keypair — fund this address on devnet:
- *  8WkwcAjPgEGTzKwgvfgYWPuAxRpQLZ9PjJvXPDc39QAb
+ *  9rRQmg7qb97NSAkNwH6u8ypf9nU2n7gkMeU8T8M3ZFtr
  */
-const HARDCODED_SECRET = new Uint8Array([156,27,76,136,243,122,254,57,228,40,24,181,218,5,186,88,210,172,213,246,169,122,72,216,129,168,82,242,4,22,208,173,111,161,86,53,17,55,149,62,187,104,253,198,83,115,140,8,8,34,227,234,152,34,124,192,10,63,199,129,219,78,150,168]);
+const HARDCODED_SECRET = new Uint8Array([30,7,99,195,225,5,249,88,245,223,62,7,180,117,168,14,182,126,9,45,125,45,44,114,178,177,20,231,156,103,193,152,131,134,142,42,201,192,225,91,81,187,231,197,180,93,0,230,221,153,68,255,218,59,9,154,226,198,116,104,90,219,25,23]);
 
 export function getSessionKeypair(): Keypair {
   return Keypair.fromSecretKey(HARDCODED_SECRET);
@@ -306,61 +299,6 @@ async function ensureGameplayDelegated(keypair: Keypair): Promise<void> {
   localStorage.setItem(cacheKey, "1");
 }
 
-/**
- * Undelegate the player_state PDA from MagicBlock's delegation program
- * back to the game program. Call this when player_state is stuck as
- * "AccountOwnedByWrongProgram".
- */
-export async function callUndelegatePlayer(keypair: Keypair): Promise<string> {
-  const id = txPending("Undelegate Player");
-  try {
-    // Send to ER — on the base chain the account is owned by the delegation
-    // program so Anchor rejects it. The ER still sees the original owner.
-    const program = getProgram(keypair, "er");
-    const tx = await sendMethodTx(
-      keypair,
-      "er",
-      () =>
-        (program.methods as any)
-          .undelegatePlayer()
-          .accounts({
-            payer: keypair.publicKey,
-            magicProgram: MAGIC_PROGRAM_ID,
-            magicContext: MAGIC_CONTEXT_ID,
-          })
-    );
-    txConfirmed(id, tx);
-
-    // Clear delegation cache so next game can re-delegate
-    const cacheKey = getDelegationCacheKey(keypair.publicKey);
-    localStorage.removeItem(cacheKey);
-
-    return tx;
-  } catch (e: any) {
-    txError(id, e.message?.slice(0, 80) || "failed");
-    throw e;
-  }
-}
-
-/**
- * Check if the player_state PDA is owned by MagicBlock's delegation program
- * (from a previous game session that didn't undelegate). If so, undelegate it
- * so that startGame can proceed normally.
- */
-export async function ensurePlayerUndelegated(keypair: Keypair): Promise<void> {
-  const [playerStatePDA] = getPlayerStatePDA(keypair.publicKey);
-  const accountInfo = await getBaseConnection().getAccountInfo(playerStatePDA, "confirmed");
-
-  if (!accountInfo) return; // Account doesn't exist yet, nothing to undelegate
-
-  if (accountInfo.owner.equals(DELEGATION_PROGRAM_ID)) {
-    console.log("[Solana] player_state is delegated to MagicBlock — undelegating...");
-    await callUndelegatePlayer(keypair);
-    console.log("[Solana] player_state undelegated successfully");
-    // Wait for state to propagate from ER back to base chain
-    await new Promise((resolve) => setTimeout(resolve, 3000));
-  }
-}
 
 // ===== PDA HELPERS =====
 
@@ -569,9 +507,6 @@ export async function callInitializeZone(
 }
 
 export async function callStartGame(keypair: Keypair): Promise<string> {
-  // If player_state is still delegated from a previous session, undelegate first
-  await ensurePlayerUndelegated(keypair);
-
   const id = txPending("Start Game");
   try {
     const program = getProgram(keypair, "base");
