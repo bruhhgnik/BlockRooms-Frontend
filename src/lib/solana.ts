@@ -314,16 +314,20 @@ async function ensureGameplayDelegated(keypair: Keypair): Promise<void> {
 export async function callUndelegatePlayer(keypair: Keypair): Promise<string> {
   const id = txPending("Undelegate Player");
   try {
-    const program = getProgram(keypair, "base");
-    const tx = await withBlockhashRetry<string>(() =>
-      (program.methods as any)
-        .undelegatePlayer()
-        .accounts({
-          payer: keypair.publicKey,
-          magicProgram: MAGIC_PROGRAM_ID,
-          magicContext: MAGIC_CONTEXT_ID,
-        })
-        .rpc()
+    // Send to ER — on the base chain the account is owned by the delegation
+    // program so Anchor rejects it. The ER still sees the original owner.
+    const program = getProgram(keypair, "er");
+    const tx = await sendMethodTx(
+      keypair,
+      "er",
+      () =>
+        (program.methods as any)
+          .undelegatePlayer()
+          .accounts({
+            payer: keypair.publicKey,
+            magicProgram: MAGIC_PROGRAM_ID,
+            magicContext: MAGIC_CONTEXT_ID,
+          })
     );
     txConfirmed(id, tx);
 
@@ -353,8 +357,8 @@ export async function ensurePlayerUndelegated(keypair: Keypair): Promise<void> {
     console.log("[Solana] player_state is delegated to MagicBlock — undelegating...");
     await callUndelegatePlayer(keypair);
     console.log("[Solana] player_state undelegated successfully");
-    // Wait a moment for state to settle
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Wait for state to propagate from ER back to base chain
+    await new Promise((resolve) => setTimeout(resolve, 3000));
   }
 }
 
