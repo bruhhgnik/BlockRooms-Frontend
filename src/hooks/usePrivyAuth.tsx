@@ -49,61 +49,113 @@ export const usePrivyAuth = () => {
   const didSetup = useRef(false);
   const connectAttempted = useRef(false);
 
-  // After auth, actively connect the wallet if it's not already available
-  useEffect(() => {
-    if (!ready || !authenticated) return;
-    if (connectAttempted.current) return;
+  const trySetupSigner = useCallback((candidate: unknown): boolean => {
+    const walletCandidate = candidate as
+      | { type?: string; address?: string; provider?: { signTransaction?: unknown } }
+      | undefined;
 
-    // If wallet is already available, skip
-    if (wallet) return;
+    if (!walletCandidate?.address) return false;
 
-    connectAttempted.current = true;
-    console.log('[Privy] Authenticated, connecting active wallet...');
-    connectActiveWallet().then((result) => {
-      console.log('[Privy] connectActiveWallet result:', result);
-    }).catch((e) => {
-      console.warn('[Privy] connectActiveWallet failed:', e);
-    });
-  }, [ready, authenticated, wallet, connectActiveWallet]);
+    const walletType = walletCandidate.type;
+    console.log('[Privy] Wallet available:', walletCandidate.address, 'type:', walletType);
 
-  // When wallet becomes available, wire up the signer
-  useEffect(() => {
-    if (!ready || !authenticated || !wallet) return;
-    if (didSetup.current && address === wallet.address) return;
-
-    const walletType = (wallet as any).type;
-    console.log('[Privy] Wallet available:', wallet.address, 'type:', walletType);
-
-    // Accept both Solana wallets and wallets without an explicit type
     if (walletType && walletType !== 'solana') {
       console.log('[Privy] Wallet is not Solana, skipping. Type:', walletType);
-      // Still show as connected with the address even if we can't sign yet
-      // This helps debug what wallet type is returned
-      return;
+      return false;
+    }
+    if (typeof walletCandidate.provider?.signTransaction !== 'function') {
+      console.warn('[Privy] Wallet provider is missing signTransaction.');
+      return false;
+    }
+    if (didSetup.current && address === walletCandidate.address) {
+      return true;
     }
 
     didSetup.current = true;
-    const signer = buildSigner(wallet as any);
+    const signer = buildSigner({
+      address: walletCandidate.address,
+      provider: walletCandidate.provider,
+    });
+
     setSessionSigner(signer);
-    setAddress(wallet.address);
+    setAddress(walletCandidate.address);
     setStatus('connected');
     setConnectionStatus('connected');
     setIsConnecting(false);
 
     const keypair = getSessionKeypair();
-    ensureGameConfigInitialized(keypair).then((ok) => {
+    void ensureGameConfigInitialized(keypair).then((ok) => {
       if (!ok) {
         console.warn('[Privy] Game config not readable for this deployment.');
       }
     });
-  }, [ready, authenticated, wallet, address, setConnectionStatus]);
+
+    return true;
+  }, [address, setConnectionStatus]);
+
+  // After auth, actively connect the wallet if it's not already available
+  useEffect(() => {
+    if (!ready || !authenticated) return;
+    if (connectAttempted.current) return;
+
+    if (wallet && trySetupSigner(wallet)) return;
+
+    connectAttempted.current = true;
+    setIsConnecting(true);
+    setStatus('connecting');
+    setConnectionStatus('connecting');
+
+    console.log('[Privy] Authenticated, connecting active wallet...');
+    void connectActiveWallet()
+      .then((result) => {
+        console.log('[Privy] connectActiveWallet result:', result);
+        if (result?.wallet) {
+          trySetupSigner(result.wallet);
+        }
+      })
+      .catch((e) => {
+        console.warn('[Privy] connectActiveWallet failed:', e);
+      })
+      .finally(() => {
+        if (!didSetup.current) {
+          setIsConnecting(false);
+          setStatus('disconnected');
+          setConnectionStatus('disconnected');
+        }
+      });
+  }, [ready, authenticated, wallet, connectActiveWallet, setConnectionStatus, trySetupSigner]);
+
+  // When wallet becomes available, wire up the signer
+  useEffect(() => {
+    if (!ready || !authenticated || !wallet) return;
+
+    const ok = trySetupSigner(wallet);
+    if (!ok && !didSetup.current) {
+      setIsConnecting(false);
+      setStatus('disconnected');
+      setConnectionStatus('disconnected');
+    }
+  }, [ready, authenticated, wallet, setConnectionStatus, trySetupSigner]);
+
+  // If auth drops, reset connection state flags.
+  useEffect(() => {
+    if (!ready) return;
+    if (!authenticated) {
+      didSetup.current = false;
+      connectAttempted.current = false;
+      setIsConnecting(false);
+      setStatus('disconnected');
+      setConnectionStatus('disconnected');
+      setAddress(null);
+    }
+  }, [ready, authenticated, setConnectionStatus]);
 
   // Fallback: if authenticated but no wallet from useActiveWallet,
-  // try to find the Solana address from the user's linked accounts
+  // try to find the Solana address from the user's linked accounts.
   useEffect(() => {
     if (!ready || !authenticated || !user) return;
     if (didSetup.current) return;
-    if (wallet) return; // useActiveWallet already provided one
+    if (wallet) return;
 
     const solanaAccount = (user as any).linkedAccounts?.find(
       (a: any) => a.type === 'wallet' && a.chainType === 'solana'
@@ -111,21 +163,44 @@ export const usePrivyAuth = () => {
     if (solanaAccount?.address) {
       console.log('[Privy] Found Solana wallet in linked accounts:', solanaAccount.address);
       setAddress(solanaAccount.address);
-      // We have the address but no provider yet for signing.
-      // Show the address in UI but don't mark fully connected until provider is available.
-    }
-  }, [ready, authenticated, user, wallet]);
 
-  const handleConnect = useCallback(async () => {
-    if (authenticated) {
-      // Already logged in — try to activate the wallet
+      if (!didSetup.current) {
+        setIsConnecting(false);
+        setStatus('disconnected');
+        setConnectionStatus('disconnected');
+      }
+    }
+  }, [ready, authenticated, user, wallet, setConnectionStatus]);
+
+  const handleConnect = useCallback(async (): Promise<boolean> => {
+    if (!ready || isConnecting) return false;
+
+    if (authenticated || !!user) {
+      setIsConnecting(true);
+      setStatus('connecting');
+      setConnectionStatus('connecting');
+
       try {
-        const result = await connectActiveWallet();
+        const result = await connectActiveWallet({ reset: true });
         console.log('[Privy] Re-connected wallet:', result);
+
+        if (result?.wallet && trySetupSigner(result.wallet)) {
+          return true;
+        }
+        if (wallet && trySetupSigner(wallet)) {
+          return true;
+        }
       } catch (e) {
         console.warn('[Privy] Re-connect failed:', e);
+      } finally {
+        if (!didSetup.current) {
+          setIsConnecting(false);
+          setStatus('disconnected');
+          setConnectionStatus('disconnected');
+        }
       }
-      return;
+
+      return didSetup.current;
     }
 
     setIsConnecting(true);
@@ -135,18 +210,31 @@ export const usePrivyAuth = () => {
 
     try {
       login();
+      return false;
     } catch (e) {
       console.error('[Privy] Login failed:', e);
       setStatus('disconnected');
       setConnectionStatus('disconnected');
       setIsConnecting(false);
+      return false;
     }
-  }, [authenticated, login, connectActiveWallet, setConnectionStatus]);
+  }, [
+    ready,
+    isConnecting,
+    authenticated,
+    user,
+    connectActiveWallet,
+    trySetupSigner,
+    wallet,
+    login,
+    setConnectionStatus,
+  ]);
 
   const handleDisconnect = useCallback(async () => {
     await logout();
     didSetup.current = false;
     connectAttempted.current = false;
+    setIsConnecting(false);
     setStatus('disconnected');
     setAddress(null);
     setConnectionStatus('disconnected');

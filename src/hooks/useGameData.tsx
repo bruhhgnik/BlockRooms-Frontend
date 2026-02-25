@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import useAppStore from '../zustand/store';
 import {
+  getSessionSigner,
   getSessionKeypair,
   fetchPlayerState,
   fetchPlayerStats,
@@ -17,6 +18,11 @@ export const useGameData = () => {
     console.log('[GameData] Fetching on-chain data...');
 
     try {
+      if (!getSessionSigner()) {
+        console.warn('[GameData] Session signer unavailable; skipping fetch.');
+        return;
+      }
+
       const keypair = getSessionKeypair();
       const store = useAppStore.getState();
 

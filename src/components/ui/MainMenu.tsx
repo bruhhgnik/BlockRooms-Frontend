@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import useAppStore, { GamePhase } from "../../zustand/store";
 import { usePrivyAuth } from "../../hooks/usePrivyAuth";
 import { useGameData } from "../../hooks/useGameData";
@@ -24,6 +24,7 @@ export function MainMenu(): JSX.Element {
   const isConnected = status === "connected";
   const hasPlayer = player !== null;
   const isLoading = isConnecting || playerLoading || initializing || startingGame;
+  const lastFetchedAddressRef = useRef<string | null>(null);
 
   const images = useMemo(
     () => ["/bk1.jpg", "/bk2.jpg", "/bk3.jpg", "/bk4.jpg", "/bk5.jpg", "/bk6.jpg"],
@@ -39,6 +40,17 @@ export function MainMenu(): JSX.Element {
 
   useEffect(() => setLoading(isLoading), [isLoading, setLoading]);
 
+  useEffect(() => {
+    if (!isConnected || !address) {
+      lastFetchedAddressRef.current = null;
+      return;
+    }
+    if (lastFetchedAddressRef.current === address) return;
+
+    lastFetchedAddressRef.current = address;
+    void refetch();
+  }, [isConnected, address, refetch]);
+
   // tiny ambient background swapper
   useEffect(() => {
     const t = setInterval(() => {
@@ -53,7 +65,6 @@ export function MainMenu(): JSX.Element {
 
   const handleWalletConnect = async (): Promise<void> => {
     await handleConnect();
-    setTimeout(() => refetch(), 1500);
   };
 
   const handlePlayerInit = async (): Promise<void> => {
