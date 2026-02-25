@@ -48,6 +48,8 @@ export const useGameData = () => {
           special_ability_cooldown: currentPlayer?.special_ability_cooldown ?? 0,
           position: currentPlayer?.position ?? { x: 400, y: 400 },
         });
+      } else {
+        store.setPlayer(null);
       }
 
       if (stats) {
