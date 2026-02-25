@@ -19,6 +19,10 @@ const USE_MAGICBLOCK = true;
 const SESSION_KEY = "blockrooms_session_keypair";
 const ER_DELEGATION_KEY = "blockrooms_er_delegated";
 
+const DELEGATION_PROGRAM_ID = new PublicKey("DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh");
+const MAGIC_PROGRAM_ID = new PublicKey("Magic11111111111111111111111111111111111111");
+const MAGIC_CONTEXT_ID = new PublicKey("MagicContext1111111111111111111111111111111");
+
 const PLAYER_STATE_SEED = "player_state";
 const PLAYER_STATS_SEED = "player_stats";
 const ZONE_STATE_SEED = "zone_state";
@@ -299,6 +303,53 @@ async function ensureGameplayDelegated(keypair: Keypair): Promise<void> {
   localStorage.setItem(cacheKey, "1");
 }
 
+/** Undelegate player_state from MagicBlock ER back to base chain. */
+export async function callUndelegatePlayer(keypair: Keypair): Promise<string> {
+  const id = txPending("Undelegate Player");
+  try {
+    const program = getProgram(keypair, "er");
+    const tx = await sendMethodTx(
+      keypair,
+      "er",
+      () =>
+        (program.methods as any)
+          .undelegatePlayer()
+          .accounts({
+            payer: keypair.publicKey,
+            magicProgram: MAGIC_PROGRAM_ID,
+            magicContext: MAGIC_CONTEXT_ID,
+          })
+    );
+    txConfirmed(id, tx);
+
+    const cacheKey = getDelegationCacheKey(keypair.publicKey);
+    localStorage.removeItem(cacheKey);
+
+    return tx;
+  } catch (e: any) {
+    txError(id, e.message?.slice(0, 80) || "failed");
+    throw e;
+  }
+}
+
+/**
+ * Check if player_state is still delegated and undelegate via ER.
+ * Silently ignores failures (account may not be delegated).
+ */
+async function ensurePlayerUndelegated(keypair: Keypair): Promise<void> {
+  const [playerStatePDA] = getPlayerStatePDA(keypair.publicKey);
+  const accountInfo = await getBaseConnection().getAccountInfo(playerStatePDA, "confirmed");
+  if (!accountInfo || !accountInfo.owner.equals(DELEGATION_PROGRAM_ID)) return;
+
+  try {
+    console.log("[Solana] player_state still delegated — undelegating via ER...");
+    await callUndelegatePlayer(keypair);
+    console.log("[Solana] player_state undelegated successfully");
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  } catch (e) {
+    console.warn("[Solana] Undelegate failed:", e);
+  }
+}
 
 // ===== PDA HELPERS =====
 
@@ -507,6 +558,8 @@ export async function callInitializeZone(
 }
 
 export async function callStartGame(keypair: Keypair): Promise<string> {
+  await ensurePlayerUndelegated(keypair);
+
   const id = txPending("Start Game");
   try {
     const program = getProgram(keypair, "base");
@@ -742,6 +795,14 @@ export async function callEndGame(keypair: Keypair): Promise<string> {
           .accounts({ player: keypair.publicKey })
     );
     txConfirmed(id, tx);
+
+    // Undelegate player_state so next startGame can work on base chain
+    try {
+      await callUndelegatePlayer(keypair);
+    } catch (e) {
+      console.warn("[Solana] Post-endGame undelegate failed:", e);
+    }
+
     return tx;
   } catch (e: any) {
     txError(id, e.message?.slice(0, 80) || "failed");
