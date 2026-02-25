@@ -3,7 +3,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { Vector3 } from "three";
 import * as THREE from "three";
 import { FirstPersonControlsProps, Keys } from "../../types/game";
-import useAppStore from "../../zustand/store";
+import useAppStore, { GamePhase } from "../../zustand/store";
 
 export function FirstPersonControls({
   onPositionUpdate, // Keep for backward compatibility
@@ -60,6 +60,11 @@ export function FirstPersonControls({
         case "KeyD":
         case "ArrowRight":
           keys.current.right = true;
+          break;
+        case "KeyQ":
+          // Exit to main menu
+          document.exitPointerLock?.();
+          useAppStore.getState().setGamePhase(GamePhase.INITIALIZED);
           break;
       }
     };

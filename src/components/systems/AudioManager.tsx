@@ -9,10 +9,13 @@ export function AudioManager(): null {
   useEffect(() => {
     if (audioUnavailable) return;
 
-    // Create background music audio element
-    const audio = new Audio("/shot.mp3");
-    audio.loop = true;
-    audio.volume = 0.12;
+    // Background music placeholder — no BGM file available yet.
+    // When a bgm.mp3 is added to /public, uncomment the lines below.
+    // const audio = new Audio("/bgm.mp3");
+    // audio.loop = true;
+    // audio.volume = 0.12;
+    const audio = new Audio();
+    audio.volume = 0;
     audio.onerror = () => {
       setAudioUnavailable(true);
     };

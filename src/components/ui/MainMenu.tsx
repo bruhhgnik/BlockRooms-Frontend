@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import useAppStore, { GamePhase } from "../../zustand/store";
-import { usePrivyAuth } from "../../hooks/usePrivyAuth";
+import { useSolanaConnect } from "../../hooks/useSolanaConnect";
 import { useGameData } from "../../hooks/useGameData";
 import { useInitializePlayer } from "../../hooks/useInitializePlayer";
 import { useStartGame } from "../../hooks/useStartGame";
 
 export function MainMenu(): JSX.Element {
-  const { status, address, handleConnect, isConnecting } = usePrivyAuth();
+  const { status, address, handleConnect, isConnecting } = useSolanaConnect();
   const { isLoading: playerLoading, refetch } = useGameData();
   const {
     initializePlayer,
@@ -141,7 +141,7 @@ export function MainMenu(): JSX.Element {
                 cursor: isConnected ? "default" : "pointer",
               }}
             >
-              1. {isConnected ? "CONNECTED" : "LOGIN"}
+              1. {isConnected ? "CONNECTED" : "CONNECT WALLET"}
             </button>
 
             <button
