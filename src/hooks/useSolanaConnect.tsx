@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import useAppStore from '../zustand/store';
 import {
   getSessionKeypair,
@@ -10,7 +10,6 @@ export const useSolanaConnect = () => {
   const [address, setAddress] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const setConnectionStatus = useAppStore((state) => state.setConnectionStatus);
-  const didAutoConnect = useRef(false);
 
   const handleConnect = useCallback(async () => {
     setIsConnecting(true);
@@ -40,13 +39,6 @@ export const useSolanaConnect = () => {
       setIsConnecting(false);
     }
   }, [setConnectionStatus]);
-
-  useEffect(() => {
-    // React StrictMode runs mount effects twice in dev.
-    if (didAutoConnect.current) return;
-    didAutoConnect.current = true;
-    void handleConnect();
-  }, [handleConnect]);
 
   return {
     status,

@@ -307,8 +307,14 @@ const useAppStore = create<AppStore>()(
       setPlayer: (player) =>
         set((state) => {
           const gameStats = updateGameStats(player);
-          const gamePhase = determineGamePhase(player, state.gameSession);
+          const derivedPhase = determineGamePhase(player, state.gameSession);
           const canTakeActions = player?.game_active && player?.is_alive;
+
+          // Don't override a user-initiated exit (Q key → INITIALIZED while game is still active on-chain)
+          const gamePhase =
+            state.gamePhase === GamePhase.INITIALIZED && derivedPhase === GamePhase.ACTIVE
+              ? GamePhase.INITIALIZED
+              : derivedPhase;
 
           return {
             player,
@@ -328,7 +334,14 @@ const useAppStore = create<AppStore>()(
 
       setGameSession: (gameSession) =>
         set((state) => {
-          const gamePhase = determineGamePhase(state.player, gameSession);
+          const derivedPhase = determineGamePhase(state.player, gameSession);
+
+          // Don't override a user-initiated exit
+          const gamePhase =
+            state.gamePhase === GamePhase.INITIALIZED && derivedPhase === GamePhase.ACTIVE
+              ? GamePhase.INITIALIZED
+              : derivedPhase;
+
           return { gameSession, gamePhase };
         }),
 
