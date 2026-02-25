@@ -146,17 +146,17 @@ export function MainMenu(): JSX.Element {
 
             <button
               onClick={handlePlayerInit}
-              disabled={!isConnected || !canInitialize || initializing}
+              disabled={!isConnected || !canInitialize || initializing || hasPlayer}
               style={{
                 padding: "12px 16px",
                 border: "2px solid #555",
                 borderRadius: 10,
-                background: canInitialize ? "#111" : "#1a1a1a",
-                color: "white",
-                cursor: canInitialize ? "pointer" : "not-allowed",
+                background: hasPlayer ? "#224422" : canInitialize ? "#111" : "#1a1a1a",
+                color: hasPlayer ? "#9AD8AA" : "white",
+                cursor: hasPlayer || !canInitialize ? "default" : "pointer",
               }}
             >
-              2. INITIALIZE PLAYER
+              2. {initializing ? "INITIALIZING..." : hasPlayer ? "PLAYER READY" : "INITIALIZE PLAYER"}
             </button>
 
             <button
@@ -166,8 +166,8 @@ export function MainMenu(): JSX.Element {
                 padding: "12px 16px",
                 border: "2px solid #555",
                 borderRadius: 10,
-                background: "#111",
-                color: "white",
+                background: !startDisabled ? "#333" : "#111",
+                color: !startDisabled ? "#E1CF48" : "white",
                 cursor: startDisabled ? "not-allowed" : "pointer",
               }}
             >
