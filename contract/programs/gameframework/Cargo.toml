@@ -1,0 +1,27 @@
+[package]
+name = "gameframework"
+version = "0.1.0"
+description = "Game framework ported from BlockRooms - zone-based roguelike with betting mechanics and on-chain movement"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "gameframework"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
+ephemeral-rollups-sdk = { version = "0.6.5", features = ["anchor", "disable-realloc"] }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

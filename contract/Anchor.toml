@@ -1,0 +1,24 @@
+[toolchain]
+anchor_version = "0.32.1"
+
+[features]
+resolution = true
+skip-lint = false
+
+[programs.devnet]
+contract = "ANX9UQVxFTY1eDKV4dCD936PSPbJmNSYmW6i3VgF1drC"
+gameframework = "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+
+[programs.localnet]
+contract = "CrgPTeh4yRygMe4x7VuNLsNp5LwRAc3dBMCidQUYRu6w"
+gameframework = "9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "devnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""

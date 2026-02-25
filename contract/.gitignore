@@ -1,0 +1,19 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+*.db-journal
+*.db-shm
+*.db-wal
+
+# MagicBlock test storage
+magicblock-test-storage/
