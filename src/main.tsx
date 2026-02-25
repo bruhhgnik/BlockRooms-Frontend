@@ -6,6 +6,7 @@ g.process = g.process || { env: {} };
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
+import { PrivyProvider } from "@privy-io/react-auth";
 import "./index.css";
 
 // Simple initialization with Solana
@@ -25,7 +26,22 @@ async function main() {
 
     createRoot(rootElement).render(
       <StrictMode>
-        <App />
+        <PrivyProvider
+          appId="cmm2gaylz005q0ck0i57co59o"
+          config={{
+            appearance: {
+              theme: "dark",
+            },
+            loginMethods: ["email", "google", "twitter"],
+            embeddedWallets: {
+              solana: {
+                createOnLogin: "all-users",
+              },
+            },
+          }}
+        >
+          <App />
+        </PrivyProvider>
       </StrictMode>
     );
 

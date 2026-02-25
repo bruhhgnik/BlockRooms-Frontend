@@ -1,11 +1,11 @@
 /**
  * Solana Integration Layer
  *
- * Uses a locally-generated session Keypair stored in localStorage.
+ * Uses Privy's embedded Solana wallet for signing.
  * All transactions are auto-signed — no wallet popups during gameplay.
  */
 
-import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, LAMPORTS_PER_SOL, SystemProgram, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { AnchorProvider, Program, BN } from "@coral-xyz/anchor";
 import idlJSON from "./gameframework.json";
 import { txPending, txConfirmed, txError } from "./txlog";
@@ -80,18 +80,44 @@ export function toFriendlyProgramError(error: unknown): string {
   return msg;
 }
 
-// ===== SESSION KEYPAIR =====
+// ===== SESSION SIGNER (Privy embedded wallet) =====
 
-/** Hardcoded devnet session keypair — fund this address on devnet:
- *  8WkwcAjPgEGTzKwgvfgYWPuAxRpQLZ9PjJvXPDc39QAb
- */
-const HARDCODED_SECRET = new Uint8Array([156,27,76,136,243,122,254,57,228,40,24,181,218,5,186,88,210,172,213,246,169,122,72,216,129,168,82,242,4,22,208,173,111,161,86,53,17,55,149,62,187,104,253,198,83,115,140,8,8,34,227,234,152,34,124,192,10,63,199,129,219,78,150,168]);
-
-export function getSessionKeypair(): Keypair {
-  return Keypair.fromSecretKey(HARDCODED_SECRET);
+export interface SessionSigner {
+  publicKey: PublicKey;
+  signTransaction<T extends Transaction | VersionedTransaction>(tx: T): Promise<T>;
+  signAllTransactions<T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]>;
 }
 
-/** Clear the stored session keypair (for "new wallet") */
+let _sessionSigner: SessionSigner | null = null;
+
+/** Called after Privy login to set the embedded wallet as our signer */
+export function setSessionSigner(signer: SessionSigner): void {
+  _sessionSigner = signer;
+}
+
+/** Get the session signer's public key (for PDA derivation) */
+export function getSessionPublicKey(): PublicKey | null {
+  return _sessionSigner?.publicKey ?? null;
+}
+
+/** Get the full session signer object */
+export function getSessionSigner(): SessionSigner | null {
+  return _sessionSigner;
+}
+
+/**
+ * Compatibility shim so existing hooks that call getSessionKeypair() keep working.
+ * Returns an object shaped like a Keypair (publicKey + sign functions).
+ */
+export function getSessionKeypair(): Keypair {
+  if (!_sessionSigner) {
+    throw new Error("Session signer not set — log in with Privy first");
+  }
+  // Return a fake Keypair-like object; the actual signing goes through SessionWallet
+  return { publicKey: _sessionSigner.publicKey } as Keypair;
+}
+
+/** Clear delegation cache */
 export function clearSessionKeypair(): void {
   localStorage.removeItem(SESSION_KEY);
   for (let i = localStorage.length - 1; i >= 0; i -= 1) {
@@ -128,31 +154,30 @@ export function getConnection(): Connection {
   return USE_MAGICBLOCK ? getErConnection() : getBaseConnection();
 }
 
-/** Simple wallet wrapper so AnchorProvider can sign with our Keypair */
+/** Wallet wrapper that delegates signing to the Privy embedded wallet */
 class SessionWallet {
-  constructor(readonly payer: Keypair) {}
+  constructor(readonly signer: SessionSigner) {}
   get publicKey() {
-    return this.payer.publicKey;
+    return this.signer.publicKey;
   }
   async signTransaction(tx: any) {
-    tx.partialSign(this.payer);
-    return tx;
+    return this.signer.signTransaction(tx);
   }
   async signAllTransactions(txs: any[]) {
-    return txs.map((tx) => {
-      tx.partialSign(this.payer);
-      return tx;
-    });
+    return this.signer.signAllTransactions(txs);
   }
 }
 
 type Network = "base" | "er";
 
 async function sendMethodTx(
-  keypair: Keypair,
+  _keypair: Keypair,
   network: Network,
   buildMethod: () => any
 ): Promise<string> {
+  const signer = getSessionSigner();
+  if (!signer) throw new Error("Session signer not set — log in with Privy first");
+
   if (network === "er") {
     return withBlockhashRetry(async () => {
       const tx = await buildMethod().transaction();
@@ -160,9 +185,9 @@ async function sendMethodTx(
       const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash("processed");
       tx.recentBlockhash = blockhash;
-      tx.feePayer = keypair.publicKey;
-      tx.sign(keypair);
-      const signature = await connection.sendRawTransaction(tx.serialize(), {
+      tx.feePayer = signer.publicKey;
+      const signed = await signer.signTransaction(tx);
+      const signature = await connection.sendRawTransaction(signed.serialize(), {
         skipPreflight: true,
         maxRetries: 5,
       });
@@ -201,11 +226,14 @@ function isIgnorableDelegationError(msg: string): boolean {
 }
 
 export function getProvider(
-  keypair: Keypair,
+  _keypair: Keypair,
   network: Network = USE_MAGICBLOCK ? "er" : "base"
 ): AnchorProvider {
+  const signer = getSessionSigner();
+  if (!signer) throw new Error("Session signer not set — log in with Privy first");
+
   const connection = network === "er" ? getErConnection() : getBaseConnection();
-  const wallet = new SessionWallet(keypair);
+  const wallet = new SessionWallet(signer);
   const opts =
     network === "er"
       ? {
@@ -365,12 +393,13 @@ export function getEnemyStatePDA(player: PublicKey, enemyId: number): [PublicKey
 // ===== AIRDROP =====
 
 export async function ensureFunded(keypair: Keypair): Promise<boolean> {
+  const pubkey = _sessionSigner?.publicKey ?? keypair.publicKey;
   const connection = getBaseConnection();
-  const balance = await connection.getBalance(keypair.publicKey);
+  const balance = await connection.getBalance(pubkey);
   if (balance < 0.5 * LAMPORTS_PER_SOL) {
     console.log("[Solana] Low balance, requesting airdrop...");
     try {
-      const sig = await connection.requestAirdrop(keypair.publicKey, 2 * LAMPORTS_PER_SOL);
+      const sig = await connection.requestAirdrop(pubkey, 2 * LAMPORTS_PER_SOL);
       await connection.confirmTransaction(sig, "confirmed");
       console.log("[Solana] Airdrop confirmed");
       return true;
@@ -379,7 +408,7 @@ export async function ensureFunded(keypair: Keypair): Promise<boolean> {
       if (msg.includes("429")) {
         console.warn(
           "[Solana] Airdrop rate-limited. Fund manually at https://faucet.solana.com — address:",
-          keypair.publicKey.toBase58()
+          pubkey.toBase58()
         );
       } else {
         console.error("[Solana] Airdrop failed:", e);
