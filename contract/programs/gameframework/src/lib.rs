@@ -1039,6 +1039,42 @@ pub mod gameframework {
         msg!("Player state undelegated");
         Ok(())
     }
+
+    /// Undelegate game session from ER
+    pub fn undelegate_game_session(ctx: Context<CommitGameSession>) -> Result<()> {
+        commit_and_undelegate_accounts(
+            &ctx.accounts.payer,
+            vec![&ctx.accounts.game_session.to_account_info()],
+            &ctx.accounts.magic_context,
+            &ctx.accounts.magic_program,
+        )?;
+        msg!("Game session undelegated");
+        Ok(())
+    }
+
+    /// Undelegate player stats from ER
+    pub fn undelegate_player_stats(ctx: Context<CommitPlayerStats>) -> Result<()> {
+        commit_and_undelegate_accounts(
+            &ctx.accounts.payer,
+            vec![&ctx.accounts.player_stats.to_account_info()],
+            &ctx.accounts.magic_context,
+            &ctx.accounts.magic_program,
+        )?;
+        msg!("Player stats undelegated");
+        Ok(())
+    }
+
+    /// Undelegate zone state from ER
+    pub fn undelegate_zone_state(ctx: Context<CommitZoneState>, zone: u8) -> Result<()> {
+        commit_and_undelegate_accounts(
+            &ctx.accounts.payer,
+            vec![&ctx.accounts.zone_state.to_account_info()],
+            &ctx.accounts.magic_context,
+            &ctx.accounts.magic_program,
+        )?;
+        msg!("Zone state undelegated");
+        Ok(())
+    }
 }
 
 // ===== ACCOUNT CONTEXTS =====
@@ -1128,7 +1164,7 @@ pub struct StartGame<'info> {
     )]
     pub player_state: Account<'info, PlayerState>,
     #[account(
-        init,
+        init_if_needed,
         payer = player,
         space = 8 + GameSession::INIT_SPACE,
         seeds = [GAME_SESSION_SEED, player.key().as_ref()],
@@ -1364,4 +1400,44 @@ pub struct CommitPlayer<'info> {
         bump = player_state.bump
     )]
     pub player_state: Account<'info, PlayerState>,
+}
+
+#[commit]
+#[derive(Accounts)]
+pub struct CommitGameSession<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [GAME_SESSION_SEED, payer.key().as_ref()],
+        bump = game_session.bump
+    )]
+    pub game_session: Account<'info, GameSession>,
+}
+
+#[commit]
+#[derive(Accounts)]
+pub struct CommitPlayerStats<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [PLAYER_STATS_SEED, payer.key().as_ref()],
+        bump = player_stats.bump
+    )]
+    pub player_stats: Account<'info, PlayerStats>,
+}
+
+#[commit]
+#[derive(Accounts)]
+#[instruction(zone: u8)]
+pub struct CommitZoneState<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [ZONE_STATE_SEED, payer.key().as_ref(), &[zone]],
+        bump = zone_state.bump
+    )]
+    pub zone_state: Account<'info, ZoneState>,
 }

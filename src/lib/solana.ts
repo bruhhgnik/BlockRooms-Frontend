@@ -303,51 +303,84 @@ async function ensureGameplayDelegated(keypair: Keypair): Promise<void> {
   localStorage.setItem(cacheKey, "1");
 }
 
-/** Undelegate player_state from MagicBlock ER back to base chain. */
-export async function callUndelegatePlayer(keypair: Keypair): Promise<string> {
-  const id = txPending("Undelegate Player");
+/** Undelegate a single account via ER. Returns true if successful. */
+async function undelegateAccount(
+  keypair: Keypair,
+  methodName: string,
+  extraAccounts: Record<string, PublicKey>,
+  label: string,
+  args: any[] = []
+): Promise<boolean> {
+  const id = txPending(`Undelegate ${label}`);
   try {
     const program = getProgram(keypair, "er");
     const tx = await sendMethodTx(
       keypair,
       "er",
       () =>
-        (program.methods as any)
-          .undelegatePlayer()
+        (program.methods as any)[methodName](...args)
           .accounts({
             payer: keypair.publicKey,
             magicProgram: MAGIC_PROGRAM_ID,
             magicContext: MAGIC_CONTEXT_ID,
+            ...extraAccounts,
           })
     );
     txConfirmed(id, tx);
-
-    const cacheKey = getDelegationCacheKey(keypair.publicKey);
-    localStorage.removeItem(cacheKey);
-
-    return tx;
+    console.log(`[Solana] ${label} undelegated`);
+    return true;
   } catch (e: any) {
     txError(id, e.message?.slice(0, 80) || "failed");
-    throw e;
+    return false;
   }
 }
 
 /**
- * Check if player_state is still delegated and undelegate via ER.
- * Silently ignores failures (account may not be delegated).
+ * Check accounts needed for startGame and undelegate any that are still
+ * owned by the MagicBlock delegation program.
  */
-async function ensurePlayerUndelegated(keypair: Keypair): Promise<void> {
-  const [playerStatePDA] = getPlayerStatePDA(keypair.publicKey);
-  const accountInfo = await getBaseConnection().getAccountInfo(playerStatePDA, "confirmed");
-  if (!accountInfo || !accountInfo.owner.equals(DELEGATION_PROGRAM_ID)) return;
+async function ensureAllUndelegated(keypair: Keypair): Promise<void> {
+  const conn = getBaseConnection();
 
+  // Only player_state and game_session are needed for startGame
+  const accounts = [
+    { pda: getPlayerStatePDA(keypair.publicKey)[0], method: "undelegatePlayer", label: "Player State", args: [] as any[] },
+    { pda: getGameSessionPDA(keypair.publicKey)[0], method: "undelegateGameSession", label: "Game Session", args: [] as any[] },
+    { pda: getPlayerStatsPDA(keypair.publicKey)[0], method: "undelegatePlayerStats", label: "Player Stats", args: [] as any[] },
+  ];
+
+  let undelegated = false;
+  for (const acct of accounts) {
+    try {
+      const info = await conn.getAccountInfo(acct.pda, "confirmed");
+      if (info && info.owner.equals(DELEGATION_PROGRAM_ID)) {
+        console.log(`[Solana] ${acct.label} still delegated — undelegating...`);
+        await undelegateAccount(keypair, acct.method, {}, acct.label, acct.args);
+        undelegated = true;
+      }
+    } catch (e) {
+      console.warn(`[Solana] Failed to check/undelegate ${acct.label}:`, e);
+    }
+  }
+
+  // Zone state undelegation is optional — skip if it doesn't exist
   try {
-    console.log("[Solana] player_state still delegated — undelegating via ER...");
-    await callUndelegatePlayer(keypair);
-    console.log("[Solana] player_state undelegated successfully");
+    let zoneIndex = 0;
+    const ps = await fetchAccountWithFallback(keypair, "playerState", accounts[0].pda);
+    if (ps) zoneIndex = zoneIndexFromPlayerState(ps);
+    const [zoneStatePDA] = getZoneStatePDA(keypair.publicKey, zoneIndex);
+    const zoneInfo = await conn.getAccountInfo(zoneStatePDA, "confirmed");
+    if (zoneInfo && zoneInfo.owner.equals(DELEGATION_PROGRAM_ID)) {
+      console.log("[Solana] Zone State still delegated — undelegating...");
+      await undelegateAccount(keypair, "undelegateZoneState", {}, "Zone State", [zoneIndex]);
+      undelegated = true;
+    }
+  } catch { /* zone state not critical for startGame */ }
+
+  if (undelegated) {
+    const cacheKey = getDelegationCacheKey(keypair.publicKey);
+    localStorage.removeItem(cacheKey);
     await new Promise((resolve) => setTimeout(resolve, 3000));
-  } catch (e) {
-    console.warn("[Solana] Undelegate failed:", e);
   }
 }
 
@@ -558,7 +591,7 @@ export async function callInitializeZone(
 }
 
 export async function callStartGame(keypair: Keypair): Promise<string> {
-  await ensurePlayerUndelegated(keypair);
+  await ensureAllUndelegated(keypair);
 
   const id = txPending("Start Game");
   try {
@@ -796,9 +829,9 @@ export async function callEndGame(keypair: Keypair): Promise<string> {
     );
     txConfirmed(id, tx);
 
-    // Undelegate player_state so next startGame can work on base chain
+    // Undelegate all accounts so next startGame can work on base chain
     try {
-      await callUndelegatePlayer(keypair);
+      await ensureAllUndelegated(keypair);
     } catch (e) {
       console.warn("[Solana] Post-endGame undelegate failed:", e);
     }
