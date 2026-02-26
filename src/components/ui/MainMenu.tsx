@@ -4,6 +4,7 @@ import { useSolanaConnect } from "../../hooks/useSolanaConnect";
 import { useGameData } from "../../hooks/useGameData";
 import { useInitializePlayer } from "../../hooks/useInitializePlayer";
 import { useStartGame } from "../../hooks/useStartGame";
+import { clearSessionKeypair } from "../../lib/solana";
 
 export function MainMenu(): JSX.Element {
   const { status, address, handleConnect, isConnecting } = useSolanaConnect();
@@ -25,6 +26,7 @@ export function MainMenu(): JSX.Element {
   const hasPlayer = player !== null;
   const isLoading = isConnecting || playerLoading || initializing || startingGame;
   const lastFetchedAddressRef = useRef<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const images = useMemo(
     () => ["/bk1.jpg", "/bk2.jpg", "/bk3.jpg", "/bk4.jpg", "/bk5.jpg", "/bk6.jpg"],
@@ -64,15 +66,19 @@ export function MainMenu(): JSX.Element {
   const startDisabled = !isConnected || startingGame || (!gameAlreadyActive && !canStartGame);
 
   const handleWalletConnect = async (): Promise<void> => {
+    setError(null);
     await handleConnect();
   };
 
   const handlePlayerInit = async (): Promise<void> => {
+    setError(null);
     const res = await initializePlayer();
     if (res?.success) setTimeout(() => refetch(), 2000);
+    else if (res?.error) setError(res.error);
   };
 
   const handleStartOrEnterGame = async (): Promise<void> => {
+    setError(null);
     if (gameAlreadyActive) {
       startGameUI();
       return;
@@ -80,6 +86,12 @@ export function MainMenu(): JSX.Element {
     if (!canStartGame) return;
     const res = await startGame();
     if (res?.success) startGameUI();
+    else if (res?.error) setError(res.error);
+  };
+
+  const handleNewWallet = (): void => {
+    clearSessionKeypair();
+    window.location.reload();
   };
 
   return (
@@ -141,7 +153,7 @@ export function MainMenu(): JSX.Element {
                 cursor: isConnected ? "default" : "pointer",
               }}
             >
-              1. {isConnected ? "CONNECTED" : "CONNECT WALLET"}
+              1. {isConnected ? "CONNECTED" : isConnecting ? "CONNECTING..." : "CONNECT WALLET"}
             </button>
 
             <button
@@ -172,18 +184,42 @@ export function MainMenu(): JSX.Element {
               }}
             >
               {startingGame
-                ? "Starting Game..."
+                ? "3. STARTING GAME..."
                 : gameAlreadyActive
                 ? "3. ENTER GAME"
                 : canEnterGame
                 ? "3. START GAME"
-                : "3. START GAME (Initialize Player First)"}
+                : "3. START GAME"}
             </button>
 
             {isLoading && (
               <div style={{ marginTop: 10, color: "#ccc", fontSize: 13 }}>
-                🔄 Processing blockchain transaction...
+                Processing blockchain transaction...
               </div>
+            )}
+
+            {error && (
+              <div style={{ marginTop: 10, color: "#ff6b6b", fontSize: 13 }}>
+                Error: {error}
+              </div>
+            )}
+
+            {isConnected && (
+              <button
+                onClick={handleNewWallet}
+                style={{
+                  marginTop: 8,
+                  padding: "8px 12px",
+                  border: "1px solid #333",
+                  borderRadius: 8,
+                  background: "transparent",
+                  color: "#888",
+                  cursor: "pointer",
+                  fontSize: 12,
+                }}
+              >
+                NEW WALLET
+              </button>
             )}
           </div>
         </div>
