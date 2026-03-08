@@ -1,183 +1,115 @@
-# BlockRooms: Backrooms-Inspired FPS On-Chain
+# BlockRooms
 
-## Contents
+**A Backrooms-inspired on-chain FPS built for the [MagicBlock Blitz 1 Hackathon](https://www.magicblock.gg/).**
 
-- [Our Stack](#our-stack)
-- [Game Logic](#game-logic)
+> Explore eerie procedural rooms, find the real enemy hiding among decoys, and survive — all powered by fully on-chain game logic on Solana with MagicBlock Ephemeral Rollups.
 
-# Our Stack
+**Live Demo**: [block-rooms-frontend.vercel.app](https://block-rooms-frontend.vercel.app)
 
-> A high-level breakdown of the technologies powering **BlockRooms** — from 3D graphics and frontend architecture to fully on-chain gameplay mechanics.
-
----
-
-## Frontend Stack
-
-- **Blender** – for modeling and exporting `.gltf` assets used in our 3D game environment.
-- **React** – component-based UI library for structuring our game frontend.
-- **Vite** – the dev server and build tool powering the React app.
-- **Three.js** (via [`@react-three/fiber`](https://docs.pmnd.rs/react-three-fiber)) – for real-time 3D rendering in WebGL.
-- **PointerLockControls** – to enable mouse-look and FPS-style movement.
-- **Zustand** – lightweight and scalable state manager to handle in-game data like player state, room transitions, HUD, etc.
+**Smart Contract Repo**: [BlockRooms (Anchor Program)](https://github.com/Kepler22bee/BlockRooms)
 
 ---
 
-## On-Chain Game Logic (Solana + MagicBlock)
+## How It Works
 
-The logic of the game lives entirely on-chain, built on **Solana** with **MagicBlock Ephemeral Rollups** for real-time gameplay:
+BlockRooms is a zone-based FPS where the entire game state — player health, XP, enemy placement, and progression — lives on-chain. The frontend renders the 3D world but **does not know** which enemy is real. That secret is stored on-chain, making the game tamper-proof.
 
-- **Solana** – high-throughput L1 blockchain. All game state (players, rooms, scores) is stored on-chain via PDAs.
-- **Anchor** – Solana smart contract framework used for the game program.
-- **MagicBlock Ephemeral Rollups** – delegates game accounts to an ephemeral rollup for low-latency, gasless gameplay transactions during active sessions.
-- **@solana/web3.js** – TypeScript SDK for building and sending Solana transactions from the frontend.
-- **@coral-xyz/anchor** – client-side Anchor SDK for typed program interaction.
+### Gameplay Loop
 
-**Program ID:** `9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc` (devnet)
+1. **Connect Wallet** — A session keypair handles signing so there are no wallet popups mid-game.
+2. **Initialize Player** — On-chain account created with `Health = 100`, `XP = 200`.
+3. **Start Game** — Game accounts are delegated to a MagicBlock Ephemeral Rollup for real-time, gasless gameplay.
+4. **Explore & Shoot** — Navigate rooms, find enemy positions, and shoot. The on-chain program determines if you hit the real enemy or a decoy.
+5. **Progress Through Zones** — Defeat the real enemy in each zone to unlock the next.
 
----
+### Zones
 
-## Relevant Links
+| Zone  | Rooms | Fake Hit Penalty     | Real Hit Reward      |
+|-------|-------|----------------------|----------------------|
+| Red   | 8     | `-1 × Health`        | `+5 × Health`        |
+| Blue  | 8     | `-1.5 × Health`      | `+10 × Health`       |
+| Green | 4     | `-4 × Health`        | `+15 × Health`       |
 
-- [Solana Docs](https://solana.com/docs)
-- [Anchor Docs](https://www.anchor-lang.com/)
-- [MagicBlock Docs](https://docs.magicblock.gg/)
-
-# Game Logic
-
-This section outlines the core gameplay loop, progression mechanics, and XP logic of **BlockRooms**. It's built to reflect both **on-chain** and **frontend** behavior.
+Each room has 4 possible enemy positions. Only **one room per zone** contains the real enemy — the rest are decoys. Difficulty scales as you progress.
 
 ---
 
-## Overview
+## Tech Stack
 
-- **Genre**: On-chain, zone-based shooter with progression and XP mechanics.
-- **Map Structure**: 3 zones — Red (8 rooms), Blue (8 rooms), Green (4 rooms)
-- **Objective**: Locate and eliminate the *real enemy* in each zone to unlock the next.
+### Frontend
+- **React + Vite** — Fast dev server and build tooling
+- **Three.js** via `@react-three/fiber` — Real-time 3D WebGL rendering
+- **Blender** — 3D models exported as `.gltf`
+- **Zustand** — Lightweight state management for player state, rooms, and HUD
+- **PointerLockControls** — FPS-style mouse-look and movement
+
+### On-Chain (Solana + MagicBlock)
+- **Solana** — All game state stored on-chain via PDAs
+- **Anchor** — Smart contract framework for the game program
+- **MagicBlock Ephemeral Rollups** — Delegates game accounts to an ephemeral rollup for low-latency, gasless transactions during gameplay
+- **@solana/web3.js** + **@coral-xyz/anchor** — Frontend SDKs for on-chain interaction
+
+**Program ID (Devnet):** `9noA6NrVVSLjacxEnu2FqNAxPa7bqNVsRnUV12FXf7Tc`
 
 ---
 
-## Game Loop Summary
+## Architecture
 
 ```
-Connect Wallet → Initialize Player → Start Game → Spawn in Red Zone →
-→ Choose Room → Read Enemy Positions → Shoot →
-→ If Real Enemy: Gain XP & Unlock Next Zone
-→ If Fake Enemy: Lose XP → Continue Searching
-→ Repeat for all 3 zones until exit
+Frontend (React/Three.js)          On-Chain (Solana/Anchor)
+┌─────────────────────┐           ┌─────────────────────────┐
+│ 3D Room Rendering   │           │ Player PDA (HP, XP)     │
+│ Enemy Visuals       │◄────────► │ Real Enemy Selection    │
+│ Input Handling      │           │ XP Calculation          │
+│ HUD / State (Zustand)│          │ Zone Progression Logic  │
+└─────────────────────┘           └────────────┬────────────┘
+                                               │
+                                  ┌────────────▼────────────┐
+                                  │ MagicBlock Ephemeral    │
+                                  │ Rollup (gasless,        │
+                                  │ real-time delegation)   │
+                                  └─────────────────────────┘
 ```
 
----
-
-## Game Loop Step-by-Step
-
-### 1. Connect Wallet
-- A session keypair is used to sign all transactions automatically — no wallet popups during gameplay.
-
-### 2. Initialize Player
-- Player account is created **on-chain** via the `initialize_player` instruction.
-- Player spawns with:
-  - `Health = 100`
-  - `XP = 200`
-
-### 3. Start Game
-- Calls `start_game` on the base Solana devnet.
-- Game accounts are delegated to MagicBlock's Ephemeral Rollup for real-time gameplay.
-
-### 4. Explore Red Zone
-- **Total Rooms**: 8 (Red Zone)
-- Player can only enter **one room at a time**.
-- In each room:
-  - **4 positions** are shown by the frontend where enemies may appear.
-  - These positions are **predefined** in the frontend.
-  - However, the **frontend does not know** which is real or fake.
-  - This info is derived from **on-chain** state.
-
-### 5. Real vs. Fake Enemies
-- Across all 8 rooms:
-  - Only **one** hides the **real enemy**.
-  - Its identity is **hidden from the frontend** and **stored on-chain**.
-
----
-
-## Shooting Logic
-
-| Enemy Type     | Action | XP Impact             | Zone Impact                             |
-|----------------|--------|------------------------|------------------------------------------|
-| Fake Enemy     | Hit    | `-1 × current_health`  | Stay in current zone, keep searching     |
-| Real Enemy     | Hit    | `+5 × current_health`  | Unlock next zone                         |
-
----
-
-## XP Formula
-
-- **On Miss (fake):**
-  `XP -= 1 × Health`
-
-- **On Hit (real):**
-  `XP += 5 × Health`
-
----
-
-## Zone Progression
-
-```
-Red Zone (8 rooms)
-→ Real enemy defeated
-→ Blue Zone (8 rooms)
-→ Real enemy defeated
-→ Green Zone (4 rooms)
-→ Game Completed
-```
-
-- Once the real enemy in a zone is defeated:
-  - The next zone is unlocked
-  - Health and XP are retained
-- If **Health = 0**, player may be prevented from progressing.
-
----
-
-## On-Chain vs. Frontend Responsibilities
-
-| Layer         | Responsibility                                              |
-|---------------|-------------------------------------------------------------|
-| **Frontend**  | Renders rooms, enemy visuals, manages input                 |
-| **On-Chain**  | Chooses real enemy, calculates XP, controls state           |
-| **Anchor**    | Stores health, XP, room state, and logs events via PDAs     |
-| **MagicBlock**| Handles real-time gameplay via ephemeral rollup delegation   |
-
----
-
-## Session End Conditions
-
-- Player defeats the real enemy in the **Green Zone**.
-- The system records:
-  - Final XP
-  - Time taken
-  - Shots fired
-
----
-
-## Zone Difficulty Scaling
-
-> The above loop repeats across zones, but XP values change to increase challenge.
-
-### Blue Zone (8 Rooms)
-
-- **Fake Enemy Shot**: `-1.5 × Health`
-- **Real Enemy Shot**: `+10 × Health`
-- **Total Positions**: `8 × 4 = 32`
-
-### Green Zone (4 Rooms)
-
-- **Fake Enemy Shot**: `-4 × Health`
-- **Real Enemy Shot**: `+15 × Health`
-- **Total Positions**: `4 × 4 = 16`
+The frontend **never knows** which enemy is real — it reads positions from the chain and renders them. When a player shoots, the on-chain program resolves the hit, updates XP, and controls zone progression.
 
 ---
 
 ## Controls
 
-- **WASD / Arrow Keys** – Move
-- **Mouse** – Look around
-- **Click** – Shoot
-- **Q** – Exit to main menu
+| Key | Action |
+|-----|--------|
+| WASD / Arrow Keys | Move |
+| Mouse | Look around |
+| Click | Shoot |
+| Q | Exit to main menu |
+
+---
+
+## Getting Started
+
+```bash
+# Clone the repo
+git clone https://github.com/bruhhgnik/BlockRooms-Frontend.git
+cd BlockRooms-Frontend
+
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
+```
+
+Make sure you have a Solana wallet (e.g. Phantom) connected to **Devnet**.
+
+---
+
+## Links
+
+- [Solana Docs](https://solana.com/docs)
+- [Anchor Docs](https://www.anchor-lang.com/)
+- [MagicBlock Docs](https://docs.magicblock.gg/)
+
+---
+
+Built for **MagicBlock Blitz 1 Hackathon**
