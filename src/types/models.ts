@@ -1,4 +1,4 @@
-// Simplified types to replace Dojo models
+// Game model types
 
 export interface Player {
   player_address: string;

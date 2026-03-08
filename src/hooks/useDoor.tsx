@@ -41,7 +41,7 @@ export const useOpenDoor = () => {
       const keypair = getSessionKeypair();
       const { zone, roomNumber } = doorToZoneRoom(doorId);
 
-      // Cairo-style flow: room entry requires an active bet.
+      // Room entry requires an active bet.
       const betState = await fetchBetState(keypair);
       if (!betState?.active) {
         const psBefore = await fetchPlayerState(keypair);
