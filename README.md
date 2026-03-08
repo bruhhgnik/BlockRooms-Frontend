@@ -6,7 +6,7 @@
 
 **Live Demo**: [block-rooms-frontend.vercel.app](https://block-rooms-frontend.vercel.app)
 
-**Smart Contract Repo**: [BlockRooms (Anchor Program)](https://github.com/Kepler22bee/BlockRooms)
+**Smart Contract**: [`contract/`](./contract) — Anchor program in this repo
 
 ---
 
